@@ -49,17 +49,25 @@ def get_staged_diff(repository_dirpath: str) -> str:
 
 
 class Reviewer():
-    def __init__(self, api_key):
+    def __init__(self, api_key: str):
         self.api_key = api_key
 
 
     def review_diff(self, diff_result: str) -> str:
         client = genai.Client(api_key=self.api_key)
         prompt = PROMPT_TEMPLATE.format(diff_result)
-        response = client.models.generate_content(
+
+        # pyrightの型チェックで
+        #   Pyright [reportUnknownMemberType]: Type of "generate_content" is partially unknown
+        # が出ます。
+        # 2025/08/06時点の下記のイシューを見ると、この問題の唯一の解決方法はtype:ignoreを使うことのようです。
+        # https://github.com/googleapis/python-genai/issues/871
+        response = client.models.generate_content( # type: ignore[reportUnknownMemberType]
             model="gemini-2.5-flash-lite",
             contents=prompt
         )
         review_result = response.text
+        if review_result is None:
+            raise ValueError("レスポンスにtextが含まれていません。APIからのレスポンスが期待される形式でなかった可能性があります。")
         return review_result
 

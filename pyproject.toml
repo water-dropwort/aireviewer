@@ -7,3 +7,7 @@ dependencies = ["google-genai", "GitPython"]
 [project.scripts]
 review = "aireviewer.cli:main"
 
+[tool.pyright]
+include = ["src"]
+exclude = ["**/__pycache__"]
+typeCheckingMode = "strict"
